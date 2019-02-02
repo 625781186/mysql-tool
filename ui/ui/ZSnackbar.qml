@@ -1,5 +1,5 @@
-import QtQuick 2.11
-import QtQuick.Controls 2.4
+import QtQuick 2.10
+import QtQuick.Controls 2.3
 
 Rectangle {
     id: snackbar
@@ -39,7 +39,7 @@ Rectangle {
     radius: fullWidth ? 0 : 2
     color: "#cc323232"
     height: 48
-    width: fullWidth ? parent.width : 200
+    width: fullWidth ? parent.width : 250
     opacity: opened ? 1 : 0
 
     Timer {

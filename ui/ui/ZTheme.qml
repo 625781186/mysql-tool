@@ -1,5 +1,5 @@
 pragma Singleton
-import QtQuick 2.11
+import QtQuick 2.10
 
 QtObject {
     property color primaryColor: "#2B579A"
@@ -24,4 +24,8 @@ QtObject {
 
     // 进度条高度
     property real progressBarHeight: 6
+
+    // 窗口阴影
+    property real shadowWidth: 10
+    property color shadowColor: "#80000000"
 }

@@ -1,32 +1,139 @@
-import QtQuick 2.11
-import QtQuick.Window 2.2
-import QtQuick.Controls 2.4
+import QtQuick 2.10
+import QtQuick.Window 2.10
+import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
+//import QtWebEngine 1.0
+import Qt.labs.platform 1.0
 
 import "./ui" as UI
 
 UI.ZLessWindow {
     id: window
     visible: true
-    width: 640
-    height: 480
-    minimumHeight: 480
-    minimumWidth: 640
+    width: 850
+    height: 600
+    minimumHeight: 850
+    minimumWidth: 600
     ztop: setting.top
-    title: "MySql Tool"
+    title: "ZTool"
+    opacity: 0
+    color: "transparent"
 
-    Item {
+    property alias showWindow: openAnimation
+
+    Timer{
+        id: timer
+        interval: 100
+        running: false
+        repeat: false
+        onTriggered: {
+            window.ztop = setting.top
+            console.log("top timer execute!")
+        }
+    }
+
+    PropertyAnimation{
+        id: closeAnimation
+        target: window
+        property: "opacity"
+        to: 0
+        duration: 200
+
+        onStopped: {
+            window.hide()
+        }
+    }
+    PropertyAnimation{
+        id: openAnimation
+        target: window
+        property: "opacity"
+        to: setting.opacity
+        duration: 200
+
+        onStarted: {
+            window.show()
+        }
+    }
+
+    Component.onCompleted: {
+        console.log("background:"+setting.background_run)
+        if(setting.background_run){
+            closeAnimation.start()
+            console.log("hide window")
+        }else{
+            window.raise()
+            window.requestActivate()
+            window.ztop = true
+            openAnimation.start()
+            console.log("qml load complete:" + new Date().getTime())
+            timer.start()
+        }
+
+    }
+
+    SystemTrayIcon {
+        id: systemIcon
+        tooltip: window.title
+        visible: true
+        iconSource: "qrc:/img/icon.ico"
+
+
+        menu: Menu {
+            MenuItem {
+                text: qsTr("退出")
+                onTriggered: {
+                    systemIcon.hide()
+                    aria2.stopAria2()
+                    Qt.quit()
+                }
+            }
+        }
+        Component.onCompleted: {
+            if(setting.init){
+                showMessage("欢迎你", "欢迎使用ZTool，期待你提出宝贵的意见！")
+                setting.init = false
+            }
+
+        }
+        onActivated: {
+            if(reason == SystemTrayIcon.Trigger){
+                if(!window.visible){
+                    window.requestActivate()
+                    window.raise()
+                    openAnimation.start()
+                }else{
+                    closeAnimation.start()
+                }
+
+            }
+
+        }
+    }
+
+    UI.ZConfirm{
+        id:confirm
+
+    }
+
+    onClosing:{
+        close.accepted = false
+//        window.hide()
+        closeAnimation.start()
+    }
+
+    Rectangle {
         id: root
         anchors.fill: parent
-        anchors.topMargin: 35
         property string serviceStatus: null
+        property string lastServiceStatus: null
+        color: "white"
 
         UI.ZSideMenu{
             id: sideMenu
             zitemBgColor:"transparent"
             anchors.top: parent.top
             anchors.left: parent.left
-            anchors.bottom: bottomTip.top
+            anchors.bottom: parent.bottom
             width: 150
             zmodel:[
                 {
@@ -34,20 +141,28 @@ UI.ZLessWindow {
                     fontIcon:UI.ZFontIcon.fa_home
                 },
                 {
-                    name:qsTr("管理"),
-                    fontIcon:UI.ZFontIcon.fa_cube
-                },
-                {
-                    name:qsTr("配置"),
+                    name:qsTr("数据库"),
                     fontIcon:UI.ZFontIcon.fa_sliders
                 },
+//                {
+//                    name:qsTr("Web"),
+//                    fontIcon:UI.ZFontIcon.fa_chrome
+//                },
+                {
+                    name:qsTr("下载"),
+                    fontIcon:UI.ZFontIcon.fa_cloud_download
+                },
+//                {
+//                    name:qsTr("上传"),
+//                    fontIcon:UI.ZFontIcon.fa_cloud_upload
+//                },
                 {
                     name:qsTr("设置"),
                     fontIcon:UI.ZFontIcon.fa_cog
                 },
 
             ]
-            //            ["#EB3C00","#2B579A","#217346","#0078D7","#672B7A","#008272"]
+
             zclickedCall: function(index,item){
                 root.currTab = index
                 switch(index){
@@ -63,130 +178,52 @@ UI.ZLessWindow {
                 case 3:
                     UI.ZTheme.primaryColor = "#008272"
                     break
+                case 4:
+                    UI.ZTheme.primaryColor = "#673ab7"
+                    break
+                case 5:
+                    UI.ZTheme.primaryColor = "#228fbd"
+                    break
+                case 6:
+                    UI.ZTheme.primaryColor = "#0e0e0e"
+                    break
                 }
             }
         }
 
         property int currTab: 0
 
-
-
-
         Item {
             id: content
             anchors.left: sideMenu.right
             anchors.top: parent.top
             anchors.right: parent.right
-            anchors.bottom: bottomTip.top
+            anchors.bottom: parent.bottom
             //            anchors.topMargin: 5
             StackLayout {
                 id: stackLayout
                 anchors.fill: parent
                 currentIndex: root.currTab
-                Home{
-                    id:home
-                }
-                ServiceManager{
-                    id:serviceManager
-                }
-                Configuration {
+                Home{}
 
-                }
-                Setting{
+                Database {}
 
-                }
+//                Item{
+//                    WebEngineView {
+//                        anchors.fill: parent
+//                        url: "http://www.ilt.me/"
+//                    }
+//                }
+
+                Download{}
+
+//                Upload{
+//
+//                }
+
+                Setting{}
             }
 
-        }
-
-        Rectangle{
-
-            id: bottomTip
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            anchors.right: parent.right
-            height: 25
-
-            color: Qt.rgba(UI.ZTheme.primaryColor.r, UI.ZTheme.primaryColor.g, UI.ZTheme.primaryColor.b, 0.8)
-            Behavior on color { ColorAnimation {duration: 200} }
-
-            UI.ZText{
-                id: sText
-                color: "white"
-                text: qsTr("MYSQL状态：")
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.leftMargin: 5
-            }
-
-            UI.ZText{
-                id: statusText
-                color: "white"
-                text: qsTr("正在检测")
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: sText.right
-                anchors.leftMargin: 5
-            }
-
-            UI.ZText{
-                id: versionValue
-                text: "F0.0.1"
-                color: "white"
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.rightMargin: 5
-                anchors.right: parent.right
-            }
-            UI.ZText{
-                id: versionLabel
-                text: qsTr("版本：")
-                color: "white"
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.rightMargin: 5
-                anchors.right: versionValue.left
-            }
-
-        }
-        property var notfoundStr: qsTr("未安装")
-        property var runningStr: qsTr("运行中")
-        property var stoppedStr: qsTr("已停止")
-        property var stopPendingStr: qsTr("停止中")
-        property var startPendingStr: qsTr("开启中")
-
-        // 连接信号
-        Connections{
-            target: mysqlServiceManager
-            onStatusSignal:{
-                root.serviceStatus = status
-                root.setStatus()
-            }
-        }
-
-        Connections{
-            target: lang
-            onLangSignal:{
-                root.setStatus()
-            }
-        }
-
-        function setStatus(){
-            if(root.serviceStatus == null){return}
-            switch(root.serviceStatus){
-            case "notfound":
-                statusText.text = root.notfoundStr
-                break
-            case "running":
-                statusText.text = root.runningStr
-                break
-            case "stopped":
-                statusText.text = root.stoppedStr
-                break
-            case "stopPending":
-                statusText.text = root.stopPendingStr
-                break
-            case "startPending":
-                statusText.text = root.startPendingStr
-                break
-            }
         }
     }
 }

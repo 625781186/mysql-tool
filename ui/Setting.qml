@@ -1,6 +1,6 @@
-import QtQuick 2.11
+import QtQuick 2.10
 import QtQuick.Window 2.2
-import QtQuick.Controls 2.4
+import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
 import "./ui" as UI
 
@@ -26,20 +26,24 @@ Item {
         UI.ZComboBox{
             model:["English","中文简体"]
             currentIndex: setting.lang
-            onCurrentIndexChanged: {
-                setting.lang = currentIndex
-                
-            }
             onZitemClicked: {
+                setting.lang = currentIndex
                 lang.setLanguage(currentIndex)
             }
         }
         UI.ZCheckBox{
             text: qsTr("窗口置顶")
             checked: setting.top
-            onCheckStateChanged: {
+            onClicked: {
                 window.ztop = checked
                 setting.top = checked
+            }
+        }
+        UI.ZCheckBox{
+            text: qsTr("开机自启")
+            checked: setting.autostart
+            onClicked: {
+                setting.autostart = checked
             }
         }
         UI.ZText{
@@ -52,29 +56,11 @@ Item {
             to: 1.0
             width: 100
 
-            onValueChanged: {
+            onMoved: {
                 window.opacity = value
                 setting.opacity = value
             }
-        }
-        UI.ZCheckBox{
-            text: qsTr("开机自启")
-            enabled: root.serviceStatus === "notfound" ? true : false
-            checked: setting.autostarts === 1 ? true : false
-            onCheckStateChanged: {
-                setting.autostarts = checked ? 1 : 0
-            }
-        }
-        UI.ZText{
-            text: qsTr("服务名称")
-            Layout.topMargin: 10
-        }
-        UI.ZTextInput{
-            enabled: root.serviceStatus === "notfound" ? true : false
-            text: setting.service
-            onTextChanged: {
-                setting.service = text
-            }        
+
         }
     }
 }

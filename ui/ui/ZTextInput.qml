@@ -1,14 +1,16 @@
-import QtQuick 2.11
-import QtQuick.Controls 2.4
+import QtQuick 2.10
+import QtQuick.Controls 2.3
 
 TextField {
     id: control
     placeholderText: qsTr("Enter content")
     font.family: ZTheme.fontFamily
+    width: 150
+    height: 30
 
     background: Rectangle {
-        implicitWidth: 150
-        implicitHeight: 30
+        implicitWidth: parent.width
+        implicitHeight: parent.height
 //        border.color: "#1a73e8"
         Rectangle{
             color: control.activeFocus ? ZTheme.primaryColor : "#b7b7b7"
